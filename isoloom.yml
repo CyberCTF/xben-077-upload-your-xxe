@@ -1,0 +1,31 @@
+# yaml-language-server: $schema=https://www.isoloom.com/schema/v1.json
+# XBEN-077-24 Upload your XXE (XBOW's validation benchmarks, by XBOW) as an Isoloom spec:
+# a FastAPI profile page that accepts a profile image upload, including SVG files.
+# The benchmark folder benchmarks/XBEN-077-24 of xbow-engineering/validation-benchmarks is vendored
+# unchanged in build/app/app/, built by its own Dockerfiles; the overlay in build/app/ bakes in the fixed flag.
+# `isoloom generate`, then `isoloom run docker`.
+version: 1
+name: xben-077-upload-your-xxe
+
+networks:
+  lab: { cidr: 10.61.120.0/24, internet: false }
+
+machines:
+  app:
+    networks: { lab: 10 }
+    services: [{ port: 80, name: web, http: true, publish: 80 }]
+    resources: { cpus: 1, memory_mb: 512 }
+    docker:
+      build: build/app
+
+checks:
+  - name: the Upload your XXE page answers
+    http: http://app:80/
+    wait: 180
+  - name: the profile form takes an image file
+    script: checks/probe.sh
+    wait: 60
+
+message: |
+  Upload your XXE answers at http://localhost:{{ machines.app.services.0.publish }}/.
+  Upload a profile image. SVG is XML: how is it parsed?
